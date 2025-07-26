@@ -39,10 +39,7 @@ export interface ShellToolParams {
   description?: string;
   directory?: string;
 }
-import { spawn } from 'child_process';
-import { summarizeToolOutput } from '../utils/summarizer.js';
 
-const OUTPUT_UPDATE_INTERVAL_MS = 1000;
 const MAX_OUTPUT_SIZE_BYTES = 1000000;
 const TRUNCATED_OUTPUT_LINES = 100;
 
