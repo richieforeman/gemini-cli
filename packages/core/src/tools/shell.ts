@@ -31,6 +31,8 @@ import { spawn } from 'child_process';
 import { summarizeToolOutput } from '../utils/summarizer.js';
 
 const OUTPUT_UPDATE_INTERVAL_MS = 1000;
+const MAX_OUTPUT_SIZE_BYTES = 1000000;
+const TRUNCATED_OUTPUT_LINES = 100;
 
 export class ShellTool extends BaseTool<ShellToolParams, ToolResult> {
   static Name: string = 'run_shell_command';
@@ -497,6 +499,41 @@ Process Group PGID: Process group started or \`(none)\``,
         // If output is empty and command succeeded (code 0, no error/signal/abort),
         // returnDisplayMessage will remain empty, which is fine.
       }
+    }
+
+    if (output.length > MAX_OUTPUT_SIZE_BYTES) {
+      const tempFileName = `gemini_shell_output_${crypto
+        .randomBytes(6)
+        .toString('hex')}.log`;
+      const tempDirPath = path.join(this.config.getTargetDir(), '.gemini');
+      fs.mkdirSync(tempDirPath, { recursive: true });
+      const tempFilePath = path.join(tempDirPath, tempFileName);
+      fs.writeFileSync(tempFilePath, output, 'utf8');
+
+      const stats = fs.statSync(tempFilePath);
+      const fileSizeInKB = stats.size / 1024;
+      const fileSize =
+        fileSizeInKB > 1024
+          ? `${(fileSizeInKB / 1024).toFixed(2)} MB`
+          : `${fileSizeInKB.toFixed(2)} KB`;
+
+      const lines = output.split('\n');
+      const truncatedOutput = lines.slice(-TRUNCATED_OUTPUT_LINES).join('\n');
+      const relativePath = path.relative(
+        this.config.getTargetDir(),
+        tempFilePath,
+      );
+      const truncationMessage = `\n---
+Output was too long and has been truncated.
+The full output (${fileSize}) has been saved to: ${relativePath}
+Read the file to see full output if necessary. For very large files, you can read the file with an offset and limit to avoid exceeding the context window size.
+Showing the last ${TRUNCATED_OUTPUT_LINES} lines.
+---`;
+      returnDisplayMessage = truncatedOutput + truncationMessage;
+      llmContent =
+        `Command output was too long and was saved to a file.\n` +
+        `File: ${relativePath} (${fileSize})\n` +
+        `Last ${TRUNCATED_OUTPUT_LINES} lines of output:\n${truncatedOutput}`;
     }
 
     const summarizeConfig = this.config.getSummarizeToolOutputConfig();
