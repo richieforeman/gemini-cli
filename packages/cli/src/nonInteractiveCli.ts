@@ -63,7 +63,9 @@ export async function runNonInteractive(
   const chat = await geminiClient.getChat();
   const abortController = new AbortController();
   let currentMessages: Content[] = [{ role: 'user', parts: [{ text: input }] }];
+  const MAX_CONSECUTIVE_TOOL_CALLS = 10;
   let turnCount = 0;
+  let consecutiveToolCalls = 0;
   try {
     while (true) {
       turnCount++;
@@ -91,6 +93,7 @@ export async function runNonInteractive(
         prompt_id,
       );
 
+      let hasTextResponse = false;
       for await (const resp of responseStream) {
         if (abortController.signal.aborted) {
           console.error('Operation cancelled.');
@@ -98,6 +101,7 @@ export async function runNonInteractive(
         }
         const textPart = getResponseText(resp);
         if (textPart) {
+          hasTextResponse = true;
           process.stdout.write(textPart);
         }
         if (resp.functionCalls) {
@@ -105,7 +109,20 @@ export async function runNonInteractive(
         }
       }
 
+      if (hasTextResponse) {
+        // If we got any text, reset the consecutive tool call counter.
+        consecutiveToolCalls = 0;
+      }
+
       if (functionCalls.length > 0) {
+        consecutiveToolCalls++;
+        if (consecutiveToolCalls > MAX_CONSECUTIVE_TOOL_CALLS) {
+          console.error(
+            `\nExceeded maximum of ${MAX_CONSECUTIVE_TOOL_CALLS} consecutive tool calls.`,
+          );
+          process.exit(1);
+        }
+
         const toolResponseParts: Part[] = [];
 
         for (const fc of functionCalls) {
@@ -126,15 +143,11 @@ export async function runNonInteractive(
           );
 
           if (toolResponse.error) {
-            const isToolNotFound = toolResponse.error.message.includes(
-              'not found in registry',
-            );
             console.error(
               `Error executing tool ${fc.name}: ${toolResponse.resultDisplay || toolResponse.error.message}`,
             );
-            if (!isToolNotFound) {
-              process.exit(1);
-            }
+            // Exit on ANY tool error to prevent loops.
+            process.exit(1);
           }
 
           if (toolResponse.responseParts) {
@@ -152,7 +165,9 @@ export async function runNonInteractive(
         }
         currentMessages = [{ role: 'user', parts: toolResponseParts }];
       } else {
-        process.stdout.write('\n'); // Ensure a final newline
+        if (hasTextResponse) {
+          process.stdout.write('\n'); // Ensure a final newline
+        }
         return;
       }
     }
