@@ -24,7 +24,17 @@ export const ideCommand = (config: Config | null): SlashCommand | null => {
   }
   const currentIDE = config.getIdeClient().getCurrentIde();
   if (!currentIDE) {
-    return null;
+    return {
+      name: 'ide',
+      description: 'manage IDE integration',
+      kind: CommandKind.BUILT_IN,
+      action: (): SlashCommandActionReturn =>
+        ({
+          type: 'message',
+          messageType: 'error',
+          content: 'Running in an unsupported IDE.',
+        }) as const,
+    };
   }
 
   const ideSlashCommand: SlashCommand = {
