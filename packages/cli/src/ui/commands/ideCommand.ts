@@ -25,7 +25,7 @@ export const ideCommand = (config: Config | null): SlashCommand | null => {
   }
   const ideClient = config.getIdeClient();
   const currentIDE = ideClient.getCurrentIde();
-  if (!currentIDE) {
+  if (!currentIDE || !ideClient.getDetectedIdeDisplayName()) {
     return {
       name: 'ide',
       description: 'manage IDE integration',
@@ -34,7 +34,7 @@ export const ideCommand = (config: Config | null): SlashCommand | null => {
         ({
           type: 'message',
           messageType: 'error',
-          content: `IDE integration is not supported in this environment. Run Gemini CLI in one of the supported environments to use this feature: ${Object.values(
+          content: `IDE integration is not supported in your current environment. To use this feature, run Gemini CLI in one of these supported IDEs: ${Object.values(
             DetectedIde,
           )
             .map((ide) => getIdeDisplayName(ide))
@@ -61,7 +61,7 @@ export const ideCommand = (config: Config | null): SlashCommand | null => {
           return {
             type: 'message',
             messageType: 'info',
-            content: `🟢 Connected`,
+            content: `🟢 Connected to ${ideClient.getDetectedIdeDisplayName()}`,
           } as const;
         case IDEConnectionStatus.Connecting:
           return {
@@ -94,7 +94,7 @@ export const ideCommand = (config: Config | null): SlashCommand | null => {
         context.ui.addItem(
           {
             type: 'error',
-            text: `No installer available. Install required IDE companion directly from the ${ideClient.getDetectedIdeDisplayName()} marketplace`,
+            text: `No installer is available for ${ideClient.getDetectedIdeDisplayName()}. Please install the IDE companion extension manually from its marketplace.`,
           },
           Date.now(),
         );
