@@ -107,7 +107,7 @@ class VsCodeInstaller implements IdeInstaller {
     // The VSIX file is copied to the bundle directory as part of the build.
     let vsixFiles = glob.sync(path.join(bundleDir, '*.vsix'));
     if (vsixFiles.length === 0) {
-      // If the VSIX file is not in the bundl e, it might be a dev
+      // If the VSIX file is not in the bundle, it might be a dev
       // environment running with `npm start`. Look for it in the original
       // package location, relative to the bundle dir.
       const devPath = path.join(
