@@ -12,8 +12,11 @@ export function getIdeDisplayName(ide: DetectedIde): string {
   switch (ide) {
     case DetectedIde.VSCode:
       return 'VS Code';
-    default:
-      throw new Error(`Unsupported IDE: ${ide}`);
+    default: {
+      // This ensures that if a new IDE is added to the enum, we get a compile-time error.
+      const exhaustiveCheck: never = ide;
+      return exhaustiveCheck;
+    }
   }
 }
 

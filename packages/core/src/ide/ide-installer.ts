@@ -99,7 +99,7 @@ class VsCodeInstaller implements IdeInstaller {
     if (!commandPath) {
       return {
         success: false,
-        message: `VS Code CLI not found. Please ensure 'code' is in your system's PATH. For help, see https://code.visualstudio.com/docs/setup/setup-and-install#_launching-from-the-command-line. You can also install the companion extension manually from the VS Code marketplace.`,
+        message: `VS Code CLI not found. Please ensure 'code' is in your system's PATH. For help, see https://code.visualstudio.com/docs/configure/command-line#_code-is-not-recognized-as-an-internal-or-external-command. You can also install the companion extension manually from the VS Code marketplace.`,
       };
     }
 
@@ -107,7 +107,7 @@ class VsCodeInstaller implements IdeInstaller {
     // The VSIX file is copied to the bundle directory as part of the build.
     let vsixFiles = glob.sync(path.join(bundleDir, '*.vsix'));
     if (vsixFiles.length === 0) {
-      // If the VSIX file is not in the bundle, it might be a dev
+      // If the VSIX file is not in the bundl e, it might be a dev
       // environment running with `npm start`. Look for it in the original
       // package location, relative to the bundle dir.
       const devPath = path.join(
