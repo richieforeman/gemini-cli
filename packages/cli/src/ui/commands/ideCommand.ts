@@ -20,7 +20,7 @@ import {
 import { SettingScope } from '../../config/settings.js';
 
 export const ideCommand = (config: Config | null): SlashCommand | null => {
-  if (!config?.getIdeModeFeature()) {
+  if (!config || !config.getIdeModeFeature()) {
     return null;
   }
   const ideClient = config.getIdeClient();
@@ -55,8 +55,8 @@ export const ideCommand = (config: Config | null): SlashCommand | null => {
     description: 'check status of IDE integration',
     kind: CommandKind.BUILT_IN,
     action: (_context: CommandContext): SlashCommandActionReturn => {
-      const connection = config.getIdeClient().getConnectionStatus();
-      switch (connection?.status) {
+      const connection = ideClient.getConnectionStatus();
+      switch (connection.status) {
         case IDEConnectionStatus.Connected:
           return {
             type: 'message',
@@ -94,7 +94,7 @@ export const ideCommand = (config: Config | null): SlashCommand | null => {
         context.ui.addItem(
           {
             type: 'error',
-            text: `No installer available for ${ideClient.getDetectedIdeDisplayName()}. Install required companion directly from the IDE's marketplace`,
+            text: `No installer available. Install required IDE companion directly from the ${ideClient.getDetectedIdeDisplayName()} marketplace`,
           },
           Date.now(),
         );

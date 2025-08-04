@@ -11,7 +11,7 @@ export enum DetectedIde {
 export function getIdeDisplayName(ide: DetectedIde): string {
   switch (ide) {
     case DetectedIde.VSCode:
-      return 'VSCode';
+      return 'VS Code';
     default:
       throw new Error(`Unsupported IDE: ${ide}`);
   }

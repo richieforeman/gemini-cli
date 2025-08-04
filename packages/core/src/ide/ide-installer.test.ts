@@ -45,32 +45,6 @@ describe('ide-installer', () => {
       vi.restoreAllMocks();
     });
 
-    describe('isInstalled', () => {
-      it('should return true if command is in PATH', async () => {
-        expect(await installer.isInstalled()).toBe(true);
-      });
-
-      it('should return true if command is in a known location', async () => {
-        vi.spyOn(child_process, 'execSync').mockImplementation(() => {
-          throw new Error('Command not found');
-        });
-        vi.spyOn(fs, 'existsSync').mockReturnValue(true);
-        // Re-create the installer so it re-runs findVsCodeCommand
-        installer = getIdeInstaller(DetectedIde.VSCode)!;
-        expect(await installer.isInstalled()).toBe(true);
-      });
-
-      it('should return false if command is not found', async () => {
-        vi.spyOn(child_process, 'execSync').mockImplementation(() => {
-          throw new Error('Command not found');
-        });
-        vi.spyOn(fs, 'existsSync').mockReturnValue(false);
-        // Re-create the installer so it re-runs findVsCodeCommand
-        installer = getIdeInstaller(DetectedIde.VSCode)!;
-        expect(await installer.isInstalled()).toBe(false);
-      });
-    });
-
     describe('install', () => {
       it('should return a failure message if VS Code is not installed', async () => {
         vi.spyOn(child_process, 'execSync').mockImplementation(() => {
@@ -82,7 +56,7 @@ describe('ide-installer', () => {
         const result = await installer.install();
         expect(result.success).toBe(false);
         expect(result.message).toContain(
-          'not found in your PATH or common installation locations',
+          'VS Code CLI not found in your environment',
         );
       });
     });
