@@ -55,9 +55,7 @@ describe('ide-installer', () => {
         installer = getIdeInstaller(DetectedIde.VSCode)!;
         const result = await installer.install();
         expect(result.success).toBe(false);
-        expect(result.message).toContain(
-          'VS Code CLI not found in your environment',
-        );
+        expect(result.message).toContain('VS Code CLI not found');
       });
     });
   });

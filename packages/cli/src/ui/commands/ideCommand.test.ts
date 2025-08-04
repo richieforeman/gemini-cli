@@ -98,7 +98,7 @@ describe('ideCommand', () => {
       expect(result).toEqual({
         type: 'message',
         messageType: 'info',
-        content: '🟢 Connected',
+        content: '🟢 Connected to VS Code',
       });
     });
 
