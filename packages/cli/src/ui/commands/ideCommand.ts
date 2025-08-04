@@ -6,6 +6,7 @@
 
 import {
   Config,
+  DetectedIde,
   IDEConnectionStatus,
   getIdeDisplayName,
   getIdeInstaller,
@@ -22,7 +23,8 @@ export const ideCommand = (config: Config | null): SlashCommand | null => {
   if (!config?.getIdeModeFeature()) {
     return null;
   }
-  const currentIDE = config.getIdeClient().getCurrentIde();
+  const ideClient = config.getIdeClient();
+  const currentIDE = ideClient.getCurrentIde();
   if (!currentIDE) {
     return {
       name: 'ide',
@@ -32,7 +34,11 @@ export const ideCommand = (config: Config | null): SlashCommand | null => {
         ({
           type: 'message',
           messageType: 'error',
-          content: 'Running in an unsupported IDE.',
+          content: `IDE integration is not supported in this environment. Run Gemini CLI in one of the supported environments to use this feature: ${Object.values(
+            DetectedIde,
+          )
+            .map((ide) => getIdeDisplayName(ide))
+            .join(', ')}`,
         }) as const,
     };
   }
@@ -80,7 +86,7 @@ export const ideCommand = (config: Config | null): SlashCommand | null => {
 
   const installCommand: SlashCommand = {
     name: 'install',
-    description: `install required IDE companion ${getIdeDisplayName(currentIDE)} extension `,
+    description: `install required IDE companion for ${ideClient.getDetectedIdeDisplayName()}`,
     kind: CommandKind.BUILT_IN,
     action: async (context) => {
       const installer = getIdeInstaller(currentIDE);
@@ -88,7 +94,7 @@ export const ideCommand = (config: Config | null): SlashCommand | null => {
         context.ui.addItem(
           {
             type: 'error',
-            text: 'No installer available for your configured IDE.',
+            text: `No installer available for ${ideClient.getDetectedIdeDisplayName()}. Install required companion directly from the IDE's marketplace`,
           },
           Date.now(),
         );
@@ -98,7 +104,7 @@ export const ideCommand = (config: Config | null): SlashCommand | null => {
       context.ui.addItem(
         {
           type: 'info',
-          text: `Installing IDE companion extension...`,
+          text: `Installing IDE companion...`,
         },
         Date.now(),
       );
