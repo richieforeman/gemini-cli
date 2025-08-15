@@ -1,0 +1,55 @@
+name: 'Richies test action'
+
+on:
+  push:
+    tags: '*'
+  workflow_dispatch:
+
+permissions:
+  contents: 'read'
+  pages: 'write'
+  id-token: 'write'
+
+concurrency:
+  group: '${{ github.workflow }}-${{ github.head_ref || github.ref }}'
+  cancel-in-progress: |-
+    ${{ github.ref != 'refs/heads/main' && !startsWith(github.ref, 'refs/heads/release/') }}
+
+jobs:
+  build:
+    runs-on: 'ubuntu-latest'
+    if: |-
+      ${{ github.repository == 'richieforeman/gemini-cli' }}
+    permissions:
+      contents: 'write'
+      packages: 'write'
+      id-token: 'write'
+      issues: 'write'
+    env:
+      BRANCH_NAME: ${{ github.ref_name }}
+    steps:
+      - name: 'Checkout'
+        uses: 'actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8' # ratchet:actions/checkout@v5
+        with:
+          ref: '${{ github.sha }}'
+          fetch-depth: 0
+      - name: 'Install Dependencies'
+        run: 'npm install'
+      - name: 'Build Sandbox'
+        id: 'build-sandbox'
+        run: |-
+          'export GEMINI_SANDBOX_IMAGE_TAG=BRANCH_NAME'
+          'npm run build:sandbox -- --output-file docker_image.txt'
+      - name: 'Build Docker Image'
+        run: 'docker build -t gemini-cli:latest .'
+      - name: 'Create issue on failure'
+        if: |-
+          ${{ failure() }}
+        env:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+          DETAILS_URL: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+        run: |-
+          gh issue create \
+            --title "Release Failed for ${RELEASE_TAG} on $(date +'%Y-%m-%d')" \
+            --body "The release workflow failed. See the full run for details: ${DETAILS_URL}" \
+            --label "kind/bug,release-failure"
