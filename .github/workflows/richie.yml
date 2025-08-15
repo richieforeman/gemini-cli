@@ -1,0 +1,79 @@
+name: 'Richies test action'
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  workflow_dispatch: # allow manual dispatching for testing
+permissions:
+  contents: 'read'
+  id-token: 'write'
+
+env:
+  PROJECT_ID: 'richieforemandotcom'
+  REGION: 'us-central1'
+  ARTIFACT_REGISTRY: 'us-central1-docker.pkg.dev/richieforemandotcom/github'
+  GOOGLE_WIF: 'projects/515963210908/locations/global/workloadIdentityPools/github/providers/gemini-cli'
+
+concurrency:
+  group: '${{ github.workflow }}-${{ github.ref_name }}'
+  cancel-in-progress: |-
+    ${{ github.ref != 'refs/heads/main' && !startsWith(github.ref, 'refs/heads/release/') }}
+
+jobs:
+  build:
+    runs-on: 'self-hosted'
+    if: |-
+      ${{ github.repository == 'richieforeman/gemini-cli' }}
+    permissions:
+      contents: 'write'
+      packages: 'write'
+      id-token: 'write'
+      issues: 'write'
+    steps:
+      - name: 'Checkout'
+        uses: 'actions/checkout@v4'
+        with:
+          ref: '${{ github.sha }}'
+          fetch-depth: 0
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v2'
+      - name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v3'
+        with:
+          project_id: '${{ env.PROJECT_ID }}'
+          workload_identity_provider: '${{ env.GOOGLE_WIF }}'
+      - name: '🔑 Docker auth'
+        run: |-
+          gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+      - name: 'Use gcloud CLI'
+        run: 'gcloud artifacts repositories list'
+      - name: '💾 Install Dependencies'
+        run: 'npm install'
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: 'build'
+        run: 'npm run build'
+      - name: 'pack @google/gemini-cli'
+        run: 'npm pack -w @google/gemini-cli --pack-destination ./packages/cli/dist'
+      - name: 'pack @google/gemini-cli-core'
+        run: 'npm pack -w @google/gemini-cli-core --pack-destination ./packages/core/dist'
+      - name: Build and Push the Docker Image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          provenance: false # avoid pushing 3 images to Aritfact Registry
+          tags: |
+            ${{ env.ARTIFACT_REGISTRY }}/cli:${{ github.ref_name }}
+      - name: 'Create issue on failure'
+        if: |-
+          ${{ failure() }}
+        env:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+          DETAILS_URL: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+        run: |-
+          gh issue create \
+            --title "Release Failed" \
+            --body "The release workflow failed. See the full run for details: ${DETAILS_URL}" \
+            --label "kind/bug,release-failure"
