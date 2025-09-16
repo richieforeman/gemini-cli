@@ -4,8 +4,8 @@ inputs:
   github-actor:
     description: 'Github actor'
     required: true
-  github-token:
-    description: 'Github token'
+  github-secret:
+    description: 'Github secret'
     required: true
   ref-name:
     description: 'Github ref name'
