@@ -42,7 +42,7 @@ runs:
         push: true
         provenance: false # avoid pushing 3 images to Aritfact Registry
         tags: |
-          ghcr.io/${{ github.repository }}/cli:${{ inputs.ref_name }}
+          ghcr.io/${{ github.repository }}/cli:${{ inputs.ref-name }}
     - name: 'Create issue on failure'
       if: |-
         ${{ failure() }}
