@@ -14,7 +14,7 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: '💾 Install Dependencies'
+    - name: 'Install Dependencies'
       shell: 'bash'
       run: 'npm install'
     - name: Set up Docker Buildx
