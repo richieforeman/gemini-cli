@@ -35,4 +35,4 @@ jobs:
         with:
           github-actor: ${{ github.actor }}
           github-secret: ${{ secrets.GITHUB_TOKEN }}
-          ref-name: ${{ github.ref }}
+          ref-name: ${{ github.ref_name }}
