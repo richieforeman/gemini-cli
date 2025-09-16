@@ -37,7 +37,9 @@ runs:
     - name: 'Get branch name'
       id: branch_name
       shell: 'bash'
-      run: echo "REF_NAME=${{ inputs.ref-name%/merge }}" >> $GITHUB_OUTPUT
+      run: |
+        REF_NAME="${{ inputs.ref-name }}"
+        echo "name=${REF_NAME%/merge}" >> $GITHUB_OUTPUT
     - name: 'Build and Push the Docker Image'
       uses: docker/build-push-action@v6
       with:
@@ -46,7 +48,7 @@ runs:
         push: true
         provenance: false # avoid pushing 3 images to Aritfact Registry
         tags: |
-          ghcr.io/${{ github.repository }}/cli:${{ steps.branch_name.outputs.REF_NAME }}
+          ghcr.io/${{ github.repository }}/cli:${{ steps.branch_name.outputs.name }}
     - name: 'Create issue on failure'
       if: |-
         ${{ failure() }}
