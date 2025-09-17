@@ -1,0 +1,37 @@
+name: 'Richies test action'
+
+on:
+  push:
+    # Pattern matched against refs/tags
+    tags:
+      - '**'
+  workflow_dispatch: # allow manual dispatching for testing
+permissions:
+  contents: 'read'
+  id-token: 'write'
+  packages: 'write'
+
+concurrency:
+  group: '${{ github.workflow }}-${{ github.ref_name }}'
+  cancel-in-progress: |-
+    ${{ github.ref != 'refs/heads/main' && !startsWith(github.ref, 'refs/heads/release/') }}
+
+jobs:
+  build:
+    runs-on: 'self-hosted'
+    if: |-
+      ${{ github.repository == 'richieforeman/gemini-cli' }}
+    permissions:
+      contents: 'write'
+      packages: 'write'
+      id-token: 'write'
+      issues: 'write'
+    steps:
+      - name: 'push sandbox'
+        uses: './.github/actions/push-sandbox'
+        with:
+          github-actor: ${{ github.actor }}
+          github-secret: ${{ secrets.GITHUB_TOKEN }}
+          github-ref-name: ${{ github.ref_name }}
+          github-sha: ${{ github.sha }}
+          github-ref-type: ${{ github.ref_type }}

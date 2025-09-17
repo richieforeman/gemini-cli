@@ -1,0 +1,78 @@
+name: 'Push to docker'
+
+inputs:
+  github-actor:
+    description: 'Github actor'
+    required: true
+  github-secret:
+    description: 'Github secret'
+    required: true
+  github-sha:
+    description: 'Github Commit SHA Hash'
+    required: true
+  github-ref-name:
+    description: 'Github ref name'
+    required: true
+  github-ref-type:
+    description: 'Github ref type'
+    required: true
+
+runs:
+  using: 'composite'
+  if: |-
+    ${{ github.repository == 'richieforeman/gemini-cli' }} && 
+    ${{ inputs.github-ref-type == 'tag' }}
+  steps:
+    - name: 'Checkout'
+      uses: 'actions/checkout@v4'
+      with:
+        ref: '${{ inputs.github-sha }}'
+        fetch-depth: 0
+    - name: 'Install Dependencies'
+      shell: 'bash'
+      run: 'npm install'
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    - name: 'determine image tag'
+      id: 'image_tag'
+      shell: 'bash'
+      run: |-
+        SHELL_TAG_NAME="${{ inputs.github-ref-name }}"
+        FINAL_TAG="${{ inputs.github-sha }}"
+        if [[ "$$SHELL_TAG_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$ ]]; then
+          echo "Release detected."
+          FINAL_TAG="$${SHELL_TAG_NAME#v}"
+        else
+          echo "Development release detected. Using commit SHA as tag."
+        fi
+        echo "Determined image tag: $$FINAL_TAG"
+        echo "FINAL_TAG=$FINAL_TAG" >> $GITHUB_OUTPUT
+
+    - name: 'build'
+      shell: 'bash'
+      envs:
+        GEMINI_SANDBOX_IMAGE_TAG: '${{ steps.image_tag.outputs.FINAL_TAG }}'
+      run: |-
+        npm run build:sandbox -- --output-file /workspace/final_image_uri.txt
+
+    - name: 'publish'
+      id: 'Publish sandbox Docker image'
+      shell: 'bash'
+      run: |-
+        set -e
+        FINAL_IMAGE_URI=$$(cat /workspace/final_image_uri.txt)
+
+        echo "Pushing sandbox image: $${FINAL_IMAGE_URI}"
+        docker push "$${FINAL_IMAGE_URI}"
+    - name: 'Create issue on failure'
+      if: |-
+        ${{ failure() }}
+      shell: 'bash'
+      env:
+        GITHUB_TOKEN: '${{ inputs.github-secret }}'
+        DETAILS_URL: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'
+      run: |-
+        gh issue create \
+          --title "Docker build failed" \
+          --body "The docker build failed. See the full run for details: ${DETAILS_URL}" \
+          --label "kind/bug,release-failure"
