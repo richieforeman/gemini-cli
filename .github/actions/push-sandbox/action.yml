@@ -46,6 +46,7 @@ runs:
       shell: 'bash'
       env:
         GEMINI_SANDBOX_IMAGE_TAG: '${{ steps.image_tag.outputs.FINAL_TAG }}'
+        GEMINI_SANDBOX: 'docker'
       run: |-
         npm run build:sandbox -- --output-file /workspace/final_image_uri.txt
 
