@@ -46,21 +46,18 @@ runs:
         echo "FINAL_TAG=$FINAL_TAG" >> $GITHUB_OUTPUT
 
     - name: 'build'
+      id: 'docker_build'
       shell: 'bash'
       env:
         GEMINI_SANDBOX_IMAGE_TAG: '${{ steps.image_tag.outputs.FINAL_TAG }}'
         GEMINI_SANDBOX: 'docker'
       run: |-
         npm run build:sandbox -- --output-file final_image_uri.txt
-
+        echo "uri=$(cat final_image_uri.txt)" >> $GITHUB_OUTPUT
     - name: 'publish'
       shell: 'bash'
       run: |-
-        set -e
-        FINAL_IMAGE_URI=$$(cat final_image_uri.txt)
-
-        echo "Pushing sandbox image: $${FINAL_IMAGE_URI}"
-        docker push "$${FINAL_IMAGE_URI}"
+        docker push "$${{ outputs.docker_build.outputs.uri }}"
     - name: 'Create issue on failure'
       if: |-
         ${{ failure() }}
