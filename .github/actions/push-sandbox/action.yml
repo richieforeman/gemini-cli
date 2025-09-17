@@ -44,7 +44,7 @@ runs:
 
     - name: 'build'
       shell: 'bash'
-      envs:
+      env:
         GEMINI_SANDBOX_IMAGE_TAG: '${{ steps.image_tag.outputs.FINAL_TAG }}'
       run: |-
         npm run build:sandbox -- --output-file /workspace/final_image_uri.txt
