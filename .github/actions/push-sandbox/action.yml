@@ -51,13 +51,13 @@ runs:
         GEMINI_SANDBOX_IMAGE_TAG: '${{ steps.image_tag.outputs.FINAL_TAG }}'
         GEMINI_SANDBOX: 'docker'
       run: |-
-        npm run build:sandbox -- --output-file /workspace/final_image_uri.txt
+        npm run build:sandbox -- --output-file final_image_uri.txt
 
     - name: 'publish'
       shell: 'bash'
       run: |-
         set -e
-        FINAL_IMAGE_URI=$$(cat /workspace/final_image_uri.txt)
+        FINAL_IMAGE_URI=$$(cat final_image_uri.txt)
 
         echo "Pushing sandbox image: $${FINAL_IMAGE_URI}"
         docker push "$${FINAL_IMAGE_URI}"
