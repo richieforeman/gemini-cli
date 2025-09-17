@@ -35,7 +35,7 @@ runs:
         username: ${{ inputs.github-actor }}
         password: ${{ inputs.github-secret }}
     - name: 'Get branch name'
-      id: branch_name
+      id: 'branch_name'
       shell: 'bash'
       run: |
         REF_NAME="${{ inputs.ref-name }}"
