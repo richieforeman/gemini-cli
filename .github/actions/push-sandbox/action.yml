@@ -57,7 +57,7 @@ runs:
     - name: 'publish'
       shell: 'bash'
       run: |-
-        docker push "$${{ outputs.docker_build.outputs.uri }}"
+        docker push "$${{ steps.docker_build.outputs.uri }}"
     - name: 'Create issue on failure'
       if: |-
         ${{ failure() }}
