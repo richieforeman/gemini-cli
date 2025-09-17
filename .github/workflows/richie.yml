@@ -32,7 +32,11 @@ jobs:
           fetch-depth: 0
       - name: Push to docker
         uses: './.github/actions/push-docker'
+        if: |-
+          github.repository == 'richieforeman/gemini-cli' && 
+          github.ref_type == 'tag'
         with:
           github-actor: ${{ github.actor }}
           github-secret: ${{ secrets.GITHUB_TOKEN }}
-          ref-name: ${{ github.ref_name }}
+          github-ref-name: ${{ github.ref_name }}
+          github-sha: ${{ github.sha }}
