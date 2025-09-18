@@ -36,13 +36,13 @@ runs:
       run: |-
         SHELL_TAG_NAME="${{ inputs.github-ref-name }}"
         FINAL_TAG="${{ inputs.github-sha }}"
-        if [[ "$$SHELL_TAG_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$ ]]; then
+        if [[ "$SHELL_TAG_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.-]+)?$ ]]; then
           echo "Release detected."
-          FINAL_TAG="$${SHELL_TAG_NAME#v}"
+          FINAL_TAG="${SHELL_TAG_NAME#v}"
         else
           echo "Development release detected. Using commit SHA as tag."
         fi
-        echo "Determined image tag: $$FINAL_TAG"
+        echo "Determined image tag: $FINAL_TAG"
         echo "FINAL_TAG=$FINAL_TAG" >> $GITHUB_OUTPUT
 
     - name: 'build'

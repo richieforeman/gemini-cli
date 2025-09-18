@@ -153,7 +153,7 @@ function buildImage(imageName, dockerfile) {
     execSync(
       `${sandboxCommand} build ${buildCommandArgs} ${
         process.env.BUILD_SANDBOX_FLAGS || ''
-      } --build-arg CLI_VERSION_ARG=${npmPackageVersion} -f "${dockerfile}" -t "${imageName}" .`,
+      } --build-arg CLI_VERSION_ARG=${npmPackageVersion} -f "${dockerfile}" -t "${finalImageName}" .`,
       { stdio: buildStdout, shell: shellToUse },
     );
     console.log(`built ${finalImageName}`);
