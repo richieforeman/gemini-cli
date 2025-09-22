@@ -27,7 +27,7 @@ jobs:
         uses: './.github/actions/push-sandbox'
         with:
           dockerhub-user: '${{ secrets.DOCKERHUB_USER }}'
-          dockerhub-password: '${{ secrets.DOCKERHUB_TOKEN }}'
+          dockerhub-token: '${{ secrets.DOCKERHUB_TOKEN }}'
           github-secret: '${{ secrets.GITHUB_TOKEN }}'
           github-sha: '${{ github.event.inputs.ref || github.sha }}'
           github-ref-name: '${{github.event.inputs.ref}}'
