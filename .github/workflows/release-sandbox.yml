@@ -16,7 +16,7 @@ on:
 
 jobs:
   build:
-    runs-on: 'ubuntu-latest'
+    runs-on: 'self-hosted'
     steps:
       - name: 'Checkout'
         uses: 'actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8'
@@ -26,7 +26,8 @@ jobs:
       - name: 'Push'
         uses: './.github/actions/push-sandbox'
         with:
-          github-actor: '${{ github.actor }}'
+          dockerhub-user: '${{ secrets.DOCKERHUB_USER }}'
+          dockerhub-password: '${{ secrets.DOCKERHUB_TOKEN }}'
           github-secret: '${{ secrets.GITHUB_TOKEN }}'
           github-sha: '${{ github.event.inputs.ref || github.sha }}'
           github-ref-name: '${{github.event.inputs.ref}}'
