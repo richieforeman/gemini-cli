@@ -7,17 +7,26 @@ on:
       - 'release/**'
   workflow_dispatch:
     inputs:
+      env:
+        description: 'env'
+        required: true
+        type: 'string'
+        default: 'test'
       ref:
-        description: 'The branch, tag, or SHA to release from.'
+        description: 'The branch, tag, or SHA to test on.'
         required: false
         type: 'string'
         default: 'main'
       dry-run:
         description: 'Run a dry-run of the smoke test; No bug will be created'
+        required: true
+        type: 'boolean'
+        default: true
 
 jobs:
-  build:
-    runs-on: 'ubuntu-latest'
+  smoke-test:
+    environment: '${{ github.event.inputs.env }}'
+    runs-on: 'self-hosted'
     permissions:
       contents: 'read'
       issues: 'write'
