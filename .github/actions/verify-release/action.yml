@@ -22,7 +22,7 @@ inputs:
     type: 'string'
 
 runs:
-  environment: '${{ github.event.inputs.environment }}'
+  environment: '${{ inputs.environment }}'
   using: 'composite'
   steps:
     - name: '📝 Print Inputs'

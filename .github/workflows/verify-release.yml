@@ -32,4 +32,4 @@ jobs:
           expected-version: '${{github.event.inputs.version}}'
           ref: '${{github.event.inputs.ref}}'
           gemini_api_key: '${{ secrets.GEMINI_API_KEY }}'
-          envionment: '${{ github.event.inputs.envionment }}'
+          environment: '${{ github.event.inputs.envionment }}'
