@@ -21,7 +21,7 @@ inputs:
     description: 'NPM Registry to use'
     required: true
     type: 'string'
-    default: 'https://registry.npmjs.org
+    default: 'https://registry.npmjs.org'
 
 runs:
   environment: '${{ inputs.environment }}'
