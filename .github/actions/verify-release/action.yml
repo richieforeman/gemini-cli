@@ -24,7 +24,6 @@ inputs:
     default: 'https://registry.npmjs.org'
 
 runs:
-  environment: '${{ inputs.environment }}'
   using: 'composite'
   steps:
     - name: '📝 Print Inputs'
