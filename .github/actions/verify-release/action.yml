@@ -17,13 +17,20 @@ inputs:
     required: false
     type: 'string'
     default: 'main'
+  environment:
+    description: 'env'
+    type: 'string'
 
 runs:
+  environment: '${{ github.event.inputs.environment }}'
   using: 'composite'
   steps:
     - name: '📝 Print Inputs'
       shell: 'bash'
       run: 'echo "${{ toJSON(inputs) }}"'
+    - name: '📝 dev?'
+      shell: 'bash'
+      run: 'echo "${{ vars }}"'
 
     - name: 'Checkout'
       uses: 'actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955' # ratchet:actions/checkout@v4
