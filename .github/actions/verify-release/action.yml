@@ -17,10 +17,11 @@ inputs:
     required: false
     type: 'string'
     default: 'main'
-  environment:
-    type: 'string'
+  npm-registry:
+    description: 'NPM Registry to use'
     required: true
-    default: 'dev'
+    type: 'string'
+    default: 'https://registry.npmjs.org
 
 runs:
   environment: '${{ inputs.environment }}'
@@ -29,9 +30,6 @@ runs:
     - name: '📝 Print Inputs'
       shell: 'bash'
       run: 'echo "${{ toJSON(inputs) }}"'
-    - name: '📝 dev?'
-      shell: 'bash'
-      run: 'echo "${{ vars }}"'
 
     - name: 'Checkout'
       uses: 'actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955' # ratchet:actions/checkout@v4
@@ -50,7 +48,7 @@ runs:
         timeout_seconds: 900
         retry_wait_seconds: 30
         max_attempts: 10
-        command: 'cd ./verify && pkg="${{ inputs.npm-package }}" && npm install --prefer-online --no-cache -g "$pkg"'
+        command: 'cd ./verify && pkg="${{ inputs.npm-package }}" && npm install --prefer-online --registry="${{ inputs.npm-registry }}" --no-cache -g "$pkg"'
 
     - name: 'Smoke test - NPM Install'
       shell: 'bash'
@@ -70,7 +68,7 @@ runs:
       shell: 'bash'
       working-directory: './verify'
       run: |-
-        gemini_version=$(npx --prefer-online "${{ inputs.npm-package}}" --version)
+        gemini_version=$(npx --prefer-online --registry="${{ inputs.npm-registry }}" "${{ inputs.npm-package}}" --version)
         if [ "$gemini_version" != "${{ inputs.expected-version }}" ]; then
           echo "❌ NPX Run Version mismatch: Got $gemini_version from ${{ inputs.npm-package }}, expected ${{ inputs.expected-version }}"
           exit 1
