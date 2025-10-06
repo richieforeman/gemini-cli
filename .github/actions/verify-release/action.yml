@@ -18,8 +18,9 @@ inputs:
     type: 'string'
     default: 'main'
   environment:
-    description: 'env'
     type: 'string'
+    required: true
+    default: 'dev'
 
 runs:
   environment: '${{ inputs.environment }}'
